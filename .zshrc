@@ -133,6 +133,12 @@ claude() {
   command claude ${=base_args} -c "$@" 2>/dev/null || command claude ${=base_args} "$@"
 }
 
+# >>> grok installer >>>
+export PATH="$HOME/.grok/bin:$PATH"
+fpath=(~/.grok/completions/zsh $fpath)
+autoload -Uz compinit && compinit -C
+# <<< grok installer <<<
+
 PATH="$HOMEBREW_PREFIX/opt/gnu-tar/libexec/gnubin:$PATH"
 
 # The following lines have been added by Docker Desktop to enable Docker CLI completions.
@@ -148,8 +154,29 @@ export PATH="$MAVEN_HOME/bin:$PATH"
 
 . "$HOME/.local/bin/env"
 
-# Vite+ bin (https://viteplus.dev)
-. "$HOME/.vite-plus/env"
+# fnm
+FNM_PATH="/opt/homebrew/opt/fnm/bin"
+if [ -d "$FNM_PATH" ]; then
+  eval "$(fnm env --shell zsh)"
+fi
+
+eval "$(fnm env --use-on-cd --version-file-strategy=recursive --corepack-enabled --resolve-engines)"
+
+alias nio="ni --prefer-offline"
+alias s="nr start"
+alias d="nr dev"
+alias b="nr build"
+alias bw="nr build --watch"
+alias t="nr test"
+alias tu="nr test -u"
+alias tw="nr test --watch"
+alias w="nr watch"
+alias p="nr play"
+alias c="nr typecheck"
+alias lint="nr lint"
+alias lintf="nr lint --fix"
+alias release="nr release"
+alias re="nr release"
 
 . "/Users/guany/.deno/env"
 
@@ -159,3 +186,6 @@ export PATH="$MAVEN_HOME/bin:$PATH"
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Vite+ bin (https://viteplus.dev)
+. "$HOME/.vite-plus/env"
