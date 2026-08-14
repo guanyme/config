@@ -121,7 +121,7 @@ source $ZSH/oh-my-zsh.sh
 
 eval "$(starship init zsh)"
 
-export EDITOR='cursor'
+export EDITOR='code'
 
 [ -r "$HOME/.tauri/tauri.key" ] && export TAURI_SIGNING_PRIVATE_KEY="$(<"$HOME/.tauri/tauri.key")"
 [ -r "$HOME/.tauri/tauri.pass" ] && export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(<"$HOME/.tauri/tauri.pass")"
