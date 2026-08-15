@@ -134,10 +134,9 @@ export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-25.jdk/Contents/Home"
 export MAVEN_HOME="/usr/local/maven"
 export BUN_INSTALL="$HOME/.bun"
 
-# Tauri 更新签名 —— 密钥与密码都从文件读取。
-# 本文件会同步到公开仓库，任何明文密钥都不能写在这里
-[ -r "$HOME/.tauri/tauri.key" ] && export TAURI_SIGNING_PRIVATE_KEY="$(<"$HOME/.tauri/tauri.key")"
-[ -r "$HOME/.tauri/tauri.pass" ] && export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(<"$HOME/.tauri/tauri.pass")"
+# Tauri 更新签名 —— 见文件末尾的 tauri-sign 函数。
+# 私钥不再全局 export：一旦进了环境变量，所有子进程都能读到
+# （npm postinstall、CLI 的崩溃上报、agent 的 env dump 都会顺带带走）。
 
 # ── 语言运行时（按使用频率）─────────────────────────────────────────
 # node —— 只 eval 一次；多余的 `fnm env --shell zsh` 会再创建一份 multishell 目录
@@ -159,8 +158,7 @@ export PATH="$MAVEN_HOME/bin:$PATH"
 # ── 通用工具（按字母）───────────────────────────────────────────────
 # docker —— 补全的 fpath 与 compinit 已上移到 oh-my-zsh 之前统一处理。
 # Docker Desktop 更新时可能把它自己的那段重新追加到本文件末尾，届时删掉即可
-# gnu-tar —— 覆盖系统自带的 bsdtar
-PATH="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/gnu-tar/libexec/gnubin:$PATH"
+# gnu-tar —— 已上移到 .zprofile，那里对非交互登录 shell 也生效
 
 # >>> grok installer >>>
 export PATH="$HOME/.grok/bin:$PATH"
@@ -227,4 +225,18 @@ claude() {
   local base_args="--allow-dangerously-skip-permissions --permission-mode plan"
 
   command claude ${=base_args} -c "$@" 2>/dev/null || command claude ${=base_args} "$@"
+}
+
+# Tauri 更新签名的按需注入。密钥只在被包装的这条命令的生命周期内存在，
+# 不会常驻环境、也不会被无关的子进程继承。用法：
+#   tauri-sign nr build
+#   tauri-sign pnpm tauri build
+tauri-sign() {
+  local k="$HOME/.tauri/tauri.key" p="$HOME/.tauri/tauri.pass"
+  [ -r "$k" ] || { print -u2 "tauri-sign: 缺少 $k"; return 1 }
+  [ -r "$p" ] || { print -u2 "tauri-sign: 缺少 $p"; return 1 }
+  [ $# -gt 0 ] || { print -u2 "用法: tauri-sign <命令> [参数...]"; return 2 }
+  TAURI_SIGNING_PRIVATE_KEY="$(<"$k")" \
+  TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(<"$p")" \
+    "$@"
 }
