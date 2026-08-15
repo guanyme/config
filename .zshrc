@@ -118,62 +118,76 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+# ═══════════════════════════════════════════════════════════════════
+# 以下按「由内向外」分层：提示符 → 环境变量 → 语言运行时 → 通用工具
+#                        → PATH 优先级 → 别名 → 函数
+#
+# 层内顺序不影响命令解析；唯一必须保证的顺序集中在「PATH 优先级」一节。
+# ═══════════════════════════════════════════════════════════════════
 
+# ── 提示符 ─────────────────────────────────────────────────────────
 eval "$(starship init zsh)"
 
+# ── 环境变量 ───────────────────────────────────────────────────────
 export EDITOR='code'
+export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-25.jdk/Contents/Home"
+export MAVEN_HOME="/usr/local/maven"
+export BUN_INSTALL="$HOME/.bun"
 
+# Tauri 更新签名 —— 密钥与密码都从文件读取。
+# 本文件会同步到公开仓库，任何明文密钥都不能写在这里
 [ -r "$HOME/.tauri/tauri.key" ] && export TAURI_SIGNING_PRIVATE_KEY="$(<"$HOME/.tauri/tauri.key")"
 [ -r "$HOME/.tauri/tauri.pass" ] && export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(<"$HOME/.tauri/tauri.pass")"
 
-i() {
-  cd ~/i/$1
-}
+# ── 语言运行时（按使用频率）─────────────────────────────────────────
+# node —— 只 eval 一次；多余的 `fnm env --shell zsh` 会再创建一份 multishell 目录
+FNM_PATH="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/fnm/bin"
+if [ -d "$FNM_PATH" ]; then
+  eval "$(fnm env --use-on-cd --version-file-strategy=recursive --corepack-enabled --resolve-engines)"
+fi
 
-codex() {
-  local base_args="--dangerously-bypass-approvals-and-sandbox"
+# bun
+export PATH="$BUN_INSTALL/bin:$PATH"
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
-  command codex ${=base_args} resume --last "$@" 2>/dev/null || command codex ${=base_args} "$@"
-}
+# python —— 由 uv 托管
+. "$HOME/.local/bin/env"
 
-claude() {
-  local base_args="--allow-dangerously-skip-permissions --permission-mode plan"
+# java
+export PATH="$MAVEN_HOME/bin:$PATH"
 
-  command claude ${=base_args} -c "$@" 2>/dev/null || command claude ${=base_args} "$@"
-}
+# ── 通用工具（按字母）───────────────────────────────────────────────
+# docker —— 补全的 fpath 与 compinit 已上移到 oh-my-zsh 之前统一处理。
+# Docker Desktop 更新时可能把它自己的那段重新追加到本文件末尾，届时删掉即可
+# gnu-tar —— 覆盖系统自带的 bsdtar
+PATH="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/gnu-tar/libexec/gnubin:$PATH"
 
 # >>> grok installer >>>
 export PATH="$HOME/.grok/bin:$PATH"
 # fpath 与 compinit 已上移到 oh-my-zsh 之前统一处理
 # <<< grok installer <<<
 
-# ---- PATH ----
-# 最终优先级（高 → 低），由各处 prepend 的先后决定，越晚 prepend 的越靠前：
-#   ~/.vite-plus/bin  →  ~/.bun/bin  →  fnm multishell  →  ~/.local/bin
-#   →  maven  →  gnu-tar  →  ~/.grok/bin  →  homebrew  →  系统
+# Vite+ bin (https://viteplus.dev)
+. "$HOME/.vite-plus/env"
+
+# ── PATH 优先级 ────────────────────────────────────────────────────
+# 实测各目录提供的命令集合，只有下面几组真正重叠，其余目录顺序随意：
 #
-# 两条硬性要求：
-#   1. fnm 的 multishell 必须压过 homebrew，否则 node 走 brew 那份
-#   2. 不要再往前插任何写死版本号的 node 路径 —— 那会让 fnm 的版本切换
-#      静默失效（fnm current 显示已切换，node --version 却不变）
-PATH="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/gnu-tar/libexec/gnubin:$PATH"   # GNU tar 覆盖系统 bsdtar
+#   ~/.local/bin  >  /opt/homebrew/bin   python3、python3.14
+#   ~/.local/bin  >  ~/.grok/bin         agent、grok
+#   gnu-tar       >  /usr/bin            tar、man    ← 在上面 prepend 即满足
+#   homebrew      >  /usr/bin            git 等      ← 同上
+#
+# fnm 的 multishell 不必钉住：homebrew 不提供 node / npm / bun。
+# 但绝不要往前插写死版本号的 node 路径 —— 那会让 fnm 的版本切换静默失效
+# （fnm current 显示已切换，node --version 却纹丝不动）。
+#
+# 因此只需要这一条：uv 的 env 脚本发现 ~/.local/bin 已在 PATH 中就会跳过，
+# 于是它停在 .zshenv 放的靠后位置，压不过 homebrew 与 ~/.grok/bin
+path=("$HOME/.local/bin" $path)
 
-# Docker CLI completions —— fpath 与 compinit 已上移到 oh-my-zsh 之前统一处理
-
-export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-25.jdk/Contents/Home"
-
-export MAVEN_HOME="/usr/local/maven"
-export PATH="$MAVEN_HOME/bin:$PATH"
-
-. "$HOME/.local/bin/env"
-
-# fnm —— 只 eval 一次；此前多余的 `fnm env --shell zsh` 会额外创建一份 multishell 目录
-FNM_PATH="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/fnm/bin"
-if [ -d "$FNM_PATH" ]; then
-  eval "$(fnm env --use-on-cd --version-file-strategy=recursive --corepack-enabled --resolve-engines)"
-fi
-
-# git —— 取代 oh-my-zsh 的 git 插件（它一次性塞了 197 个别名，只留常用的）
+# ── 别名 ───────────────────────────────────────────────────────────
+# git —— 取代 oh-my-zsh 的 git 插件（它一次塞进 197 个别名，只留常用的）
 alias g="git"
 alias gaa="git add --all"
 alias gcmsg="git commit --message"
@@ -181,6 +195,7 @@ alias gp="git push"
 alias gl="git pull"
 alias gcl="git clone --recurse-submodules"
 
+# ni / nr
 alias nio="ni --prefer-offline"
 alias s="nr start"
 alias d="nr dev"
@@ -197,12 +212,19 @@ alias lintf="nr lint --fix"
 alias release="nr release"
 alias re="nr release"
 
-# bun completions
-[ -s "/Users/guany/.bun/_bun" ] && source "/Users/guany/.bun/_bun"
+# ── 函数 ───────────────────────────────────────────────────────────
+i() {
+  cd ~/i/$1
+}
 
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
+codex() {
+  local base_args="--dangerously-bypass-approvals-and-sandbox"
 
-# Vite+ bin (https://viteplus.dev)
-. "$HOME/.vite-plus/env"
+  command codex ${=base_args} resume --last "$@" 2>/dev/null || command codex ${=base_args} "$@"
+}
+
+claude() {
+  local base_args="--allow-dangerously-skip-permissions --permission-mode plan"
+
+  command claude ${=base_args} -c "$@" 2>/dev/null || command claude ${=base_args} "$@"
+}
