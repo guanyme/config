@@ -12,6 +12,10 @@ path=(
   "$HOME/.local/share/fnm/aliases/default/bin"  # node 兜底：跟随 fnm 的 default 别名，
                                                 # 不要写死版本号。交互式下 fnm env 会把
                                                 # multishell 目录插到更前面，版本切换不受影响
+  "$HOMEBREW_PREFIX/opt/gnu-tar/libexec/gnubin"  # GNU tar 覆盖系统 bsdtar。
+                                                 # 放这里是为了让 `zsh -c` 跑的脚本
+                                                 # 和交互式用到同一个 tar —— 两者
+                                                 # 在 --wildcards / --transform 上行为不同
   "$HOMEBREW_PREFIX/bin"
   "$HOMEBREW_PREFIX/sbin"
   $path
