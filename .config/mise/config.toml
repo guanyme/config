@@ -15,9 +15,12 @@ idiomatic_version_file_enable_tools = ["node", "pnpm", "npm", "yarn"]
 credential_command = "gh auth token"
 
 [tools]
-node = "24"
+node = "lts"
+java = "lts"         # 兜底值。项目要 JDK 8 / 17 的，在项目里写 mise.toml 覆盖
 pnpm = "latest"      # 兜底值；项目里有 packageManager 字段时按项目走
+yarn = "latest"      # 同上。我的项目目前全是 pnpm，这条纯粹是遇到 yarn 仓库时的兜底
 "npm:@antfu/ni" = "latest"
+"npm:taze" = "latest"
 usage = "latest"     # mise 补全的依赖。brew 装 mise 时它是自动带的，
                      # 换成官方安装器 / winget 后就得自己声明，否则每次开 shell 都会
                      # 警告 "usage CLI not found"

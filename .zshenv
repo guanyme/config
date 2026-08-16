@@ -7,6 +7,11 @@ typeset -U path fpath
 
 export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 
+# config 仓库里那份 mise 配置只是版本控制副本，不该被当成项目配置加载 ——
+# 否则 cd 进去就报「not trusted」，那个目录下的 node/pnpm 全都调不动。
+# 这是 early-init 设置，写在 mise.toml 里无效（配置发现早已完成），只能走环境变量。
+export MISE_IGNORED_CONFIG_PATHS="$HOME/i/guanyme/config/.config/mise/config.toml"
+
 path=(
   "$HOME/.local/bin"                            # uv / claude / codex / herdr
   "$HOME/.local/share/mise/shims"               # node / pnpm / ni 兜底：shim 自己解析当前
