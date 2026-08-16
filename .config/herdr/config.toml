@@ -9,22 +9,3 @@ auto_switch = false
 
 [ui.toast]
 delivery = "system"
-
-# [terminal] 三个选项，默认值取自 herdr 自带的配置模板；
-# 改完执行 `herdr server reload-config`，用 `herdr config check` 校验。
-#
-# default_shell —— 新交互式 pane 用的可执行文件（是程序名或路径，不是命令行）。
-#   留空时 herdr 取 $SHELL，再回落到 Unix 的 /bin/sh、Windows 的 PowerShell。
-#   Windows 上那个回落是系统自带的 Windows PowerShell 5.1，不是 7 —— 而两者的
-#   $PROFILE 是不同文件（WindowsPowerShell\ 与 PowerShell\），在 7 里配好的东西
-#   在 5.1 里不生效。所以 Windows 上要显式写死：
-#
-# [terminal]
-# default_shell = "pwsh.exe"
-#
-# shell_mode = "auto"（默认）| "login" | "non_login"
-#   "auto" 在 macOS 上启动登录 shell，好让只在登录时跑的 PATH 设置生效 ——
-#   /usr/libexec/path_helper 和 Homebrew 的初始化都属于这一类。其他平台维持非登录。
-#
-# new_cwd = "follow"（默认）| "home" | "current" | 固定路径如 "~/Projects"
-#   "follow" 继承来源 pane 或 workspace；没有来源时从 $HOME 起。
