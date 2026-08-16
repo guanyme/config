@@ -1,0 +1,23 @@
+onboarding = false
+
+[ui]
+agent_panel_sort = "priority"
+
+[theme]
+name = "terminal"
+auto_switch = false
+
+[ui.toast]
+delivery = "system"
+
+# Windows 上必须显式指定 pwsh。
+# pane 的 shell 默认取 $SHELL，Windows 上会落到系统自带的 Windows PowerShell 5.1
+# 而不是 PowerShell 7 —— 两者的 $PROFILE 是不同文件（WindowsPowerShell\ 与
+# PowerShell\），在 7 里配好的东西在 5.1 里不生效。
+# 改完执行 `herdr server reload-config`，或直接开新 pane。
+# 确认当前 pane 里是哪个：$PSVersionTable.PSVersion（5.1.x 就是旧的）
+#
+# [terminal]
+# default_shell = "pwsh.exe"
+# shell_mode 可选 "auto" / "login" / "non_login"，控制新 pane 是否以登录 shell 启动；
+# "auto" 在 macOS 上用登录 shell
