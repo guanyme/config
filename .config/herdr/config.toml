@@ -10,14 +10,21 @@ auto_switch = false
 [ui.toast]
 delivery = "system"
 
-# On Windows, you must explicitly specify pwsh.
-# The pane's shell defaults to $SHELL, which falls back to the built-in Windows PowerShell 5.1
-# on Windows rather than PowerShell 7 — their $PROFILE files are different (WindowsPowerShell\ and
-# PowerShell\), so settings configured in 7 won't take effect in 5.1.
-# After editing, run `herdr server reload-config`, or simply open a new pane.
-# To check which one is running in the current pane: $PSVersionTable.PSVersion (5.1.x means the older one)
+# [terminal] Three options; defaults are taken from herdr's built-in configuration template;
+# after editing, run `herdr server reload-config` and validate with `herdr config check`.
+#
+# default_shell — the executable used for new interactive panes (a program name or path, not a command line).
+#   When empty, herdr uses $SHELL, then falls back to Unix /bin/sh or Windows PowerShell.
+#   On Windows, that fallback is the built-in Windows PowerShell 5.1, not 7 — and their
+#   $PROFILE files are different (WindowsPowerShell\ and PowerShell\), so settings configured
+#   in 7 won't take effect in 5.1. Therefore, specify it explicitly on Windows:
 #
 # [terminal]
 # default_shell = "pwsh.exe"
-# shell_mode can be "auto" / "login" / "non_login"; it controls whether new panes start as login shells;
-# "auto" uses a login shell on macOS
+#
+# shell_mode = "auto" (default) | "login" | "non_login"
+#   "auto" starts a login shell on macOS so PATH settings that run only at login take effect —
+#   /usr/libexec/path_helper and Homebrew initialization are both examples. Other platforms remain non-login.
+#
+# new_cwd = "follow" (default) | "home" | "current" | a fixed path such as "~/Projects"
+#   "follow" inherits from the source pane or workspace; with no source, it starts at $HOME.
