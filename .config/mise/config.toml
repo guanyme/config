@@ -16,7 +16,7 @@ credential_command = "gh auth token"
 
 [tools]
 node = "24"
-pnpm = "11.21.0"     # fallback value; if a project has a packageManager field, follow the project
+pnpm = "latest"      # fallback value; if a project has a packageManager field, follow the project
 "npm:@antfu/ni" = "latest"
 usage = "latest"     # A dependency for mise completions. brew installs it automatically with mise,
                      # If you switch to the official installer / winget, you'll need to declare them yourself, or every time you open a shell it'll
