@@ -8,11 +8,26 @@
 # if I really need to switch node per project in the future, I'll need to use mise.toml or .node-version.
 idiomatic_version_file_enable_tools = ["node", "pnpm", "npm", "yarn"]
 
+# Supply-chain protection: only install versions published at least N time ago, giving the community time to discover compromised releases.
+# mise defaults to 24h; disabled here — I publish npm packages myself, so I need to be able to install and verify them as soon as they're published.
+# To keep the protection without blocking my own packages, you can use minimum_release_age_excludes instead to allow only your own scope.
+minimum_release_age = "0"
+
 # mise frequently checks GitHub Releases, and the anonymous quota is only 60 requests/hour, so it's easy to hit the rate limit.
 # The gh token is stored in the keyring, and hosts.yml is empty, so mise's default lookup path can't retrieve it.
 # Fetch it on demand with a command: the token isn't written to disk or added to environment variables, and exists only when mise actually needs it.
 [settings.github]
 credential_command = "gh auth token"
+
+# Use the npm CLI to install npm: packages, rather than mise's built-in aube.
+# aube's trustPolicy=no-downgrade blocks indirect dependencies whose trust level has dropped — when installing
+# pi-coding-agent, it was blocked by @smithy/core@3.33.0 (earlier versions had a trusted publisher signature, but the newer one doesn't;
+# AWS didn't use a trusted workflow, so the package wasn't tampered with).
+#
+# Note that the npm backend still uses --ignore-scripts by default. Packages that need postinstall must have
+# allow_builds = true set for them individually in [tools], or they'll be installed in an incomplete state.
+[settings.npm]
+shell_out = true
 
 [tools]
 node = "lts"
