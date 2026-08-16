@@ -16,7 +16,7 @@ credential_command = "gh auth token"
 
 [tools]
 node = "24"
-pnpm = "11.21.0"     # 兜底值；项目里有 packageManager 字段时按项目走
+pnpm = "latest"      # 兜底值；项目里有 packageManager 字段时按项目走
 "npm:@antfu/ni" = "latest"
 usage = "latest"     # mise 补全的依赖。brew 装 mise 时它是自动带的，
                      # 换成官方安装器 / winget 后就得自己声明，否则每次开 shell 都会
