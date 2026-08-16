@@ -13,6 +13,14 @@ idiomatic_version_file_enable_tools = ["node", "pnpm", "npm", "yarn"]
 # To keep the protection without blocking my own packages, you can use minimum_release_age_excludes instead to allow only your own scope.
 minimum_release_age = "0"
 
+# npm: Keep the backend at its default (built-in aube); don't switch to npm/pnpm — that would mean removing supply-chain protection for all packages
+# because of a problem with an individual package. When aube blocks something, make a minimal exception for that package in [tools]:
+#
+#   trust_policy_excludes  Allow a trust downgrade (an older version had a trusted publisher signature, but the newer one doesn't)
+#   allow_builds           Allow build scripts such as postinstall for that package
+#
+# Both apply only to that one tool; other packages are unaffected.
+
 # mise frequently checks GitHub Releases, and the anonymous quota is only 60 requests/hour, so it's easy to hit the rate limit.
 # The gh token is stored in the keyring, and hosts.yml is empty, so mise's default lookup path can't retrieve it.
 # Fetch it on demand with a command: the token isn't written to disk or added to environment variables, and exists only when mise actually needs it.
@@ -26,9 +34,6 @@ credential_command = "gh auth token"
 #
 # Note that the npm backend still uses --ignore-scripts by default. Packages that need postinstall must have
 # allow_builds = true set for them individually in [tools], or they'll be installed in an incomplete state.
-[settings.npm]
-shell_out = true
-
 [tools]
 node = "lts"
 java = "lts"         # Fallback value. For projects that need JDK 8 / 17, override the
