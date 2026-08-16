@@ -240,3 +240,36 @@ tauri-sign() {
   TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(<"$p")" \
     "$@"
 }
+
+
+
+# ── PATH 顺序 ──────────────────────────────────────────────────────
+# 放在最后统一排一次。理由：各处 prepend 的先后决定不了最终顺序 ——
+# /etc/zprofile 的 path_helper 会把系统路径整体提前，安装器还会往本文件
+# 末尾追加自己的 env 脚本。与 Windows 注册表 PATH 用同一套分档，三端一致：
+#   10 语言运行时 → 20 GNU 工具 → 40 应用 → 50 系统/包管理器
+__path_rank() {
+  case "$1" in
+    */.local/bin)                            print 10 ;;  # uv 的 python / claude / codex / herdr
+    */fnm_multishells/*)                     print 11 ;;  # 当前会话选中的 node
+    */.bun/bin)                              print 12 ;;
+    */.deno/bin)                             print 13 ;;
+    */.cargo/bin)                            print 14 ;;
+    */maven/bin)                             print 15 ;;
+    */miniconda3/bin|*/miniconda3/condabin)  print 16 ;;
+    */fnm/aliases/default/bin)               print 19 ;;  # node 兜底，必须排在 multishell 之后
+    */gnubin)                                print 20 ;;  # GNU tar 覆盖系统 bsdtar
+    */.vite-plus/bin)                        print 40 ;;
+    */.grok/bin)                             print 41 ;;
+    */.opencode/bin)                         print 42 ;;
+    /opt/homebrew/bin|/opt/homebrew/sbin)    print 50 ;;
+    /usr/local/*)                            print 51 ;;
+    /usr/bin|/bin|/usr/sbin|/sbin)           print 52 ;;
+    # 苹果自带的系统路径（来自 /etc/paths 与 /etc/paths.d），一律垫底
+    /System/Cryptexes/*|/var/run/com.apple.security.cryptexd/*) print 53 ;;
+    /Library/Apple/*|/usr/ucb|/pkg/env/*)    print 53 ;;
+    *)                                       print 45 ;;  # 未识别：夹在应用与系统之间
+  esac
+}
+path=(${(@f)"$(for __p in $path; do print -r -- "$(__path_rank $__p)|$__p"; done | sort -t'|' -k1,1n -s | cut -d'|' -f2-)"})
+unset __p
