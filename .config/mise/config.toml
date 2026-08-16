@@ -41,6 +41,10 @@ pnpm = "latest"      # 兜底值；项目里有 packageManager 字段时按项�
 yarn = "latest"      # 同上。我的项目目前全是 pnpm，这条纯粹是遇到 yarn 仓库时的兜底
 "npm:@antfu/ni" = "latest"
 "npm:taze" = "latest"
+
+# 这两个的例外只作用于自己，其余包仍走 aube 的完整检查
+"npm:opencode-ai" = { version = "latest", allow_builds = true }   # postinstall 要拉 170MB 平台二进制，不放行会装成半成品
+"npm:@earendil-works/pi-coding-agent" = { version = "latest", trust_policy_excludes = ["@smithy/core", "@smithy/node-http-handler", "@smithy/util-stream", "@smithy/fetch-http-handler", "@smithy/middleware-retry"] }   # AWS SDK 那条链新版没有可信发布者签名
 usage = "latest"     # mise 补全的依赖。brew 装 mise 时它是自动带的，
                      # 换成官方安装器 / winget 后就得自己声明，否则每次开 shell 都会
                      # 警告 "usage CLI not found"
