@@ -139,10 +139,13 @@ export BUN_INSTALL="$HOME/.bun"
 # （npm postinstall、CLI 的崩溃上报、agent 的 env dump 都会顺带带走）。
 
 # ── 语言运行时（按使用频率）─────────────────────────────────────────
-# node —— 只 eval 一次；多余的 `fnm env --shell zsh` 会再创建一份 multishell 目录
-FNM_PATH="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/fnm/bin"
-if [ -d "$FNM_PATH" ]; then
-  eval "$(fnm env --use-on-cd --version-file-strategy=recursive --corepack-enabled --resolve-engines)"
+# node / pnpm —— 统一交给 mise（取代 fnm + corepack 两层）。
+# 版本来源：全局 ~/.config/mise/config.toml，项目里的 mise.toml / .node-version /
+# package.json 的 packageManager 字段会就近覆盖。activate 会挂 chpwd 钩子，cd 即切。
+#
+# 只在交互式生效；脚本、cron、LaunchAgent 靠 .zshenv 里的 shims 兜底。
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh)"
 fi
 
 # bun
@@ -176,9 +179,9 @@ export PATH="$HOME/.grok/bin:$PATH"
 #   gnu-tar       >  /usr/bin            tar、man    ← 在上面 prepend 即满足
 #   homebrew      >  /usr/bin            git 等      ← 同上
 #
-# fnm 的 multishell 不必钉住：homebrew 不提供 node / npm / bun。
-# 但绝不要往前插写死版本号的 node 路径 —— 那会让 fnm 的版本切换静默失效
-# （fnm current 显示已切换，node --version 却纹丝不动）。
+# mise 的 installs 目录不必钉住：homebrew 不提供 node / npm / bun。
+# 但绝不要往前插写死版本号的 node 路径 —— 那会让 mise 的版本切换静默失效
+# （mise current 显示已切换，node --version 却纹丝不动）。
 #
 # 因此只需要这一条：uv 的 env 脚本发现 ~/.local/bin 已在 PATH 中就会跳过，
 # 于是它停在 .zshenv 放的靠后位置，压不过 homebrew 与 ~/.grok/bin
@@ -192,6 +195,7 @@ alias gcmsg="git commit --message"
 alias gp="git push"
 alias gl="git pull"
 alias gcl="git clone --recurse-submodules"
+alias grt='cd "$(git rev-parse --show-toplevel)"'
 
 # ni / nr
 alias nio="ni --prefer-offline"
@@ -251,13 +255,13 @@ tauri-sign() {
 __path_rank() {
   case "$1" in
     */.local/bin)                            print 10 ;;  # uv 的 python / claude / codex / herdr
-    */fnm_multishells/*)                     print 11 ;;  # 当前会话选中的 node
+    */.local/share/mise/installs/*)          print 11 ;;  # mise 当前选中的 node / pnpm / ni
     */.bun/bin)                              print 12 ;;
     */.deno/bin)                             print 13 ;;
     */.cargo/bin)                            print 14 ;;
     */maven/bin)                             print 15 ;;
     */miniconda3/bin|*/miniconda3/condabin)  print 16 ;;
-    */fnm/aliases/default/bin)               print 19 ;;  # node 兜底，必须排在 multishell 之后
+    */.local/share/mise/shims)               print 19 ;;  # 兜底 shim，必须排在 installs 之后
     */gnubin)                                print 20 ;;  # GNU tar 覆盖系统 bsdtar
     */.vite-plus/bin)                        print 40 ;;
     */.grok/bin)                             print 41 ;;

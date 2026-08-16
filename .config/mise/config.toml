@@ -1,0 +1,23 @@
+[settings]
+# 读 package.json 里的 packageManager / devEngines 字段。默认是关的，必须显式打开。
+# 我的项目锁了 4 种 pnpm 版本（11.21.0 / 11.19.0 / 10.10.0 / 10.8.1），
+# 靠这个才能按项目切 —— 原先这活是 corepack 干的。
+#
+# 注意 mise 只认 devEngines，不认传统的 engines.node（jdx/mise#2288 未合并）。
+# 我的 46 个项目 engines.node 全解析到 24，和下面的全局版本一致，所以没有影响；
+# 将来真要按项目切 node，得写 mise.toml 或 .node-version。
+idiomatic_version_file_enable_tools = ["node", "pnpm", "npm", "yarn"]
+
+# mise 要频繁查 GitHub Releases，匿名配额只有 60 次/小时，很容易撞限流。
+# gh 的 token 存在 keyring 里，hosts.yml 是空的，所以 mise 默认的读取路径拿不到。
+# 用按需调命令的方式取：token 不落盘、不进环境变量，只在 mise 真要用时存在。
+[settings.github]
+credential_command = "gh auth token"
+
+[tools]
+node = "24"
+pnpm = "11.21.0"     # 兜底值；项目里有 packageManager 字段时按项目走
+"npm:@antfu/ni" = "latest"
+usage = "latest"     # mise 补全的依赖。brew 装 mise 时它是自动带的，
+                     # 换成官方安装器 / winget 后就得自己声明，否则每次开 shell 都会
+                     # 警告 "usage CLI not found"

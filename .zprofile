@@ -14,7 +14,11 @@ eval "$(/opt/homebrew/bin/brew shellenv zsh)"
 typeset -U path fpath
 
 path=(
-  "$HOME/.local/bin"                                            # uv / claude / codex / herdr
+  "$HOME/.local/bin"                                            # uv / claude / codex / herdr / mise
+  "$HOME/.local/share/mise/shims"                               # node / pnpm 兜底。必须排在
+                                                                # homebrew 之前 —— 否则哪天
+                                                                # brew install node 就会静默
+                                                                # 压过 mise 选中的版本
   "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/gnu-tar/libexec/gnubin" # GNU tar 覆盖系统 bsdtar
   $path
 )
