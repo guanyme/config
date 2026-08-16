@@ -8,11 +8,26 @@
 # 将来真要按项目切 node，得写 mise.toml 或 .node-version。
 idiomatic_version_file_enable_tools = ["node", "pnpm", "npm", "yarn"]
 
+# 供应链防护：只装发布超过 N 时长的版本，给社区时间发现被投毒的发布。
+# mise 默认 24h，这里关掉 —— 我自己也发 npm 包，刚 publish 就得能装上验证。
+# 想保留防护又不挡自己的包，可以改用 minimum_release_age_excludes 只放行自己的 scope。
+minimum_release_age = "0"
+
 # mise 要频繁查 GitHub Releases，匿名配额只有 60 次/小时，很容易撞限流。
 # gh 的 token 存在 keyring 里，hosts.yml 是空的，所以 mise 默认的读取路径拿不到。
 # 用按需调命令的方式取：token 不落盘、不进环境变量，只在 mise 真要用时存在。
 [settings.github]
 credential_command = "gh auth token"
+
+# 用 npm CLI 装 npm: 包，而不是 mise 内置的 aube。
+# aube 的 trustPolicy=no-downgrade 会拦下信任等级下降的间接依赖 —— 装
+# pi-coding-agent 时被 @smithy/core@3.33.0 卡住（早期版本有可信发布者签名，新版没有，
+# 那是 AWS 那边没走可信工作流，不是包被篡改）。
+#
+# 注意 npm 后端默认仍带 --ignore-scripts，需要 postinstall 的包要在 [tools] 里
+# 单独写 allow_builds = true，否则会装成半成品。
+[settings.npm]
+shell_out = true
 
 [tools]
 node = "lts"
