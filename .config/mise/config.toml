@@ -13,6 +13,14 @@ idiomatic_version_file_enable_tools = ["node", "pnpm", "npm", "yarn"]
 # 想保留防护又不挡自己的包，可以改用 minimum_release_age_excludes 只放行自己的 scope。
 minimum_release_age = "0"
 
+# npm: 后端保持默认（内置 aube），不要改成 npm/pnpm —— 那等于为个别包的问题
+# 把所有包的供应链防护都撤掉。aube 拦下来时按包开最小例外，写在 [tools] 里：
+#
+#   trust_policy_excludes  信任降级（旧版有可信发布者签名、新版没有）
+#   allow_builds           放行该包的 postinstall 等构建脚本
+#
+# 两者都只作用于那一个工具，其余包不受影响。
+
 # mise 要频繁查 GitHub Releases，匿名配额只有 60 次/小时，很容易撞限流。
 # gh 的 token 存在 keyring 里，hosts.yml 是空的，所以 mise 默认的读取路径拿不到。
 # 用按需调命令的方式取：token 不落盘、不进环境变量，只在 mise 真要用时存在。
@@ -26,9 +34,6 @@ credential_command = "gh auth token"
 #
 # 注意 npm 后端默认仍带 --ignore-scripts，需要 postinstall 的包要在 [tools] 里
 # 单独写 allow_builds = true，否则会装成半成品。
-[settings.npm]
-shell_out = true
-
 [tools]
 node = "lts"
 java = "lts"         # 兜底值。项目要 JDK 8 / 17 的，在项目里写 mise.toml 覆盖
