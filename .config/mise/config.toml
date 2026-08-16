@@ -41,6 +41,10 @@ pnpm = "latest"      # fallback value in the project's mise.toml; if a project h
 yarn = "latest"      # As above. All my projects currently use pnpm; this is purely a fallback for when I encounter a Yarn repository
 "npm:@antfu/ni" = "latest"
 "npm:taze" = "latest"
+
+# The exceptions for these two apply only to themselves; other packages still get a full check from aube
+"npm:opencode-ai" = { version = "latest", allow_builds = true }   # postinstall needs to download a 170MB platform binary; without allowing it, the install is incomplete
+"npm:@earendil-works/pi-coding-agent" = { version = "latest", trust_policy_excludes = ["@smithy/core", "@smithy/node-http-handler", "@smithy/util-stream", "@smithy/fetch-http-handler", "@smithy/middleware-retry"] }   # The AWS SDK dependency chain doesn't have trusted publisher signatures on newer versions
 usage = "latest"     # A dependency for mise completions. brew installs it automatically with mise,
                      # If you switch to the official installer / winget, you'll need to declare them yourself, or every time you open a shell it'll
                      # warn "usage CLI not found"
