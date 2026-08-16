@@ -1,0 +1,23 @@
+[settings]
+# Read the packageManager / devEngines fields in package.json. Disabled by default; must be explicitly enabled.
+# My projects are pinned to 4 pnpm versions (11.21.0 / 11.19.0 / 10.10.0 / 10.8.1),
+# and this is what lets me switch per project — corepack used to handle this.
+#
+# Note that mise only recognizes devEngines, not the traditional engines.node (jdx/mise#2288 hasn't been merged).
+# The engines.node fields in my 46 projects all resolve to 24, the same as the global version below, so there's no impact;
+# if I really need to switch node per project in the future, I'll need to use mise.toml or .node-version.
+idiomatic_version_file_enable_tools = ["node", "pnpm", "npm", "yarn"]
+
+# mise frequently checks GitHub Releases, and the anonymous quota is only 60 requests/hour, so it's easy to hit the rate limit.
+# The gh token is stored in the keyring, and hosts.yml is empty, so mise's default lookup path can't retrieve it.
+# Fetch it on demand with a command: the token isn't written to disk or added to environment variables, and exists only when mise actually needs it.
+[settings.github]
+credential_command = "gh auth token"
+
+[tools]
+node = "24"
+pnpm = "11.21.0"     # fallback value; if a project has a packageManager field, follow the project
+"npm:@antfu/ni" = "latest"
+usage = "latest"     # A dependency for mise completions. brew installs it automatically with mise,
+                     # If you switch to the official installer / winget, you'll need to declare them yourself, or every time you open a shell it'll
+                     # warn "usage CLI not found"
