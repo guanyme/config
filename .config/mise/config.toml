@@ -37,8 +37,9 @@ credential_command = "gh auth token"
 [tools]
 node = "lts"
 java = "lts"         # Fallback value. For projects that need JDK 8 / 17, override the
-pnpm = "latest"      # fallback value in the project's mise.toml; if a project has a packageManager field, follow the project
-yarn = "latest"      # As above. All my projects currently use pnpm; this is purely a fallback for when I encounter a Yarn repository
+pnpm = "latest"      # fallback value in the project's mise.toml; if a project has a packageManager field, follow the project's
+yarn = "latest"      # fallback value. Repositories using v1 must declare this themselves in the packageManager field —
+                     # running them with Yarn 4 will migrate the lockfile in place to the Berry format.
 "npm:@antfu/ni" = "latest"
 "npm:taze" = "latest"
 
@@ -46,5 +47,6 @@ yarn = "latest"      # As above. All my projects currently use pnpm; this is pur
 "npm:opencode-ai" = { version = "latest", allow_builds = true }   # postinstall needs to download a 170MB platform binary; without allowing it, the install is incomplete
 "npm:@earendil-works/pi-coding-agent" = { version = "latest", trust_policy_excludes = ["@smithy/core", "@smithy/node-http-handler", "@smithy/util-stream", "@smithy/fetch-http-handler", "@smithy/middleware-retry"] }   # The AWS SDK dependency chain doesn't have trusted publisher signatures on newer versions
 usage = "latest"     # A dependency for mise completions. brew installs it automatically with mise,
+vercel = { version = "latest", allow_builds = ["esbuild"], trust_policy_excludes = ["undici"] }   # The two exceptions are added automatically by mise use: esbuild has a postinstall script, and undici hits no-downgrade
                      # If you switch to the official installer / winget, you'll need to declare them yourself, or every time you open a shell it'll
                      # warn "usage CLI not found"

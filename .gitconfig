@@ -5,8 +5,32 @@
 [user]
 	name = Guany
 	email = hi@guany.me
+	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPux/gTjIIzsMoLaGgvd8NBem6r4Sqol48rWU58+NBl6
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+[url "git@github.com:"]
+	insteadOf = https://github.com/
+[url "git@codeup.aliyun.com:"]
+	insteadOf = https://codeup.aliyun.com/
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+	allowedSignersFile = ~/.config/git/allowed_signers
+[commit]
+	gpgSign = true
+[tag]
+	gpgSign = true
+[push]
+	autoSetupRemote = true
+[pull]
+	rebase = true
+[rebase]
+	autostash = true
+[diff]
+	algorithm = histogram
+[help]
+	autocorrect = prompt
