@@ -134,10 +134,6 @@ export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-25.jdk/Contents/Home"
 export MAVEN_HOME="/usr/local/maven"
 export BUN_INSTALL="$HOME/.bun"
 
-# Tauri 更新签名 —— 见文件末尾的 tauri-sign 函数。
-# 私钥不再全局 export：一旦进了环境变量，所有子进程都能读到
-# （npm postinstall、CLI 的崩溃上报、agent 的 env dump 都会顺带带走）。
-
 # ── 语言运行时（按使用频率）─────────────────────────────────────────
 # node / pnpm —— 统一交给 mise（取代 fnm + corepack 两层）。
 # 版本来源：全局 ~/.config/mise/config.toml，项目里的 mise.toml / .node-version /
@@ -231,19 +227,7 @@ claude() {
   command claude ${=base_args} -c "$@" 2>/dev/null || command claude ${=base_args} "$@"
 }
 
-# Tauri 更新签名的按需注入。密钥只在被包装的这条命令的生命周期内存在，
-# 不会常驻环境、也不会被无关的子进程继承。用法：
-#   tauri-sign nr build
-#   tauri-sign pnpm tauri build
-tauri-sign() {
-  local k="$HOME/.tauri/tauri.key" p="$HOME/.tauri/tauri.pass"
-  [ -r "$k" ] || { print -u2 "tauri-sign: 缺少 $k"; return 1 }
-  [ -r "$p" ] || { print -u2 "tauri-sign: 缺少 $p"; return 1 }
-  [ $# -gt 0 ] || { print -u2 "用法: tauri-sign <命令> [参数...]"; return 2 }
-  TAURI_SIGNING_PRIVATE_KEY="$(<"$k")" \
-  TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$(<"$p")" \
-    "$@"
-}
+
 
 
 

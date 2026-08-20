@@ -38,7 +38,8 @@ credential_command = "gh auth token"
 node = "lts"
 java = "lts"         # 兜底值。项目要 JDK 8 / 17 的，在项目里写 mise.toml 覆盖
 pnpm = "latest"      # 兜底值；项目里有 packageManager 字段时按项目走
-yarn = "latest"      # 同上。我的项目目前全是 pnpm，这条纯粹是遇到 yarn 仓库时的兜底
+yarn = "latest"      # 兜底值。v1 仓库要在 packageManager 字段里自己声明 ——
+                     # 拿 Yarn 4 跑它会把 lockfile 就地迁成 Berry 格式。
 "npm:@antfu/ni" = "latest"
 "npm:taze" = "latest"
 
@@ -46,5 +47,6 @@ yarn = "latest"      # 同上。我的项目目前全是 pnpm，这条纯粹是�
 "npm:opencode-ai" = { version = "latest", allow_builds = true }   # postinstall 要拉 170MB 平台二进制，不放行会装成半成品
 "npm:@earendil-works/pi-coding-agent" = { version = "latest", trust_policy_excludes = ["@smithy/core", "@smithy/node-http-handler", "@smithy/util-stream", "@smithy/fetch-http-handler", "@smithy/middleware-retry"] }   # AWS SDK 那条链新版没有可信发布者签名
 usage = "latest"     # mise 补全的依赖。brew 装 mise 时它是自动带的，
+vercel = { version = "latest", allow_builds = ["esbuild"], trust_policy_excludes = ["undici"] }   # 两条例外是 mise use 自动加的：esbuild 有 postinstall，undici 撞 no-downgrade
                      # 换成官方安装器 / winget 后就得自己声明，否则每次开 shell 都会
                      # 警告 "usage CLI not found"
