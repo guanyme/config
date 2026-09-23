@@ -28,8 +28,11 @@ export ZSH="$HOME/.oh-my-zsh"
 # zstyle ':omz:update' mode auto      # update automatically without asking
 # zstyle ':omz:update' mode reminder  # just remind me to update when it's time
 
-# Uncomment the following line to change how often to auto-update (in days).
+# Uncomment the following line to change the frequency the auto-updater is run (in days).
 # zstyle ':omz:update' frequency 13
+
+# Uncomment the following line to set how old an update must be before it's applied, manually or via the auto-updater (in days).
+# zstyle ':omz:update' cooldown 10
 
 # Uncomment the following line if pasting URLs and other text is messed up.
 # DISABLE_MAGIC_FUNCTIONS="true"
@@ -76,17 +79,9 @@ plugins=(
   zsh-syntax-highlighting
 )
 
-# path/fpath 去重（保留首次出现，即优先级最高的那个）。
-# .zprofile 的 brew shellenv 已经加过 site-functions，这里再加是重复的
-typeset -U path fpath
-
-# 所有补全目录必须在 source oh-my-zsh.sh 之前加入 fpath，
-# 交给 oh-my-zsh 内部的单次 compinit 统一处理（此前 grok / Docker 各自又调了一次 compinit）
-FPATH="${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh/site-functions:${FPATH}"
-fpath=(~/.grok/completions/zsh ~/.docker/completions $fpath)
-
-# compaudit 已确认无权限异常的补全目录，跳过每次启动的重复安全扫描
-ZSH_DISABLE_COMPFIX=true
+# >>> grok installer >>>
+fpath=(~/.grok/completions/zsh $fpath)
+# <<< grok installer <<<
 
 source $ZSH/oh-my-zsh.sh
 
@@ -118,73 +113,9 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-# ═══════════════════════════════════════════════════════════════════
-# 以下按「由内向外」分层：提示符 → 环境变量 → 语言运行时 → 通用工具
-#                        → PATH 优先级 → 别名 → 函数
-#
-# 层内顺序不影响命令解析；唯一必须保证的顺序集中在「PATH 优先级」一节。
-# ═══════════════════════════════════════════════════════════════════
 
-# ── 提示符 ─────────────────────────────────────────────────────────
 eval "$(starship init zsh)"
 
-# ── 环境变量 ───────────────────────────────────────────────────────
-export EDITOR='code'
-export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-25.jdk/Contents/Home"
-export MAVEN_HOME="/usr/local/maven"
-export BUN_INSTALL="$HOME/.bun"
-
-# ── 语言运行时（按使用频率）─────────────────────────────────────────
-# node / pnpm —— 统一交给 mise（取代 fnm + corepack 两层）。
-# 版本来源：全局 ~/.config/mise/config.toml，项目里的 mise.toml / .node-version /
-# package.json 的 packageManager 字段会就近覆盖。activate 会挂 chpwd 钩子，cd 即切。
-#
-# 只在交互式生效；脚本、cron、LaunchAgent 靠 .zshenv 里的 shims 兜底。
-if command -v mise >/dev/null 2>&1; then
-  eval "$(mise activate zsh)"
-fi
-
-# bun
-export PATH="$BUN_INSTALL/bin:$PATH"
-[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
-
-# python —— 由 uv 托管
-. "$HOME/.local/bin/env"
-
-# java
-export PATH="$MAVEN_HOME/bin:$PATH"
-
-# ── 通用工具（按字母）───────────────────────────────────────────────
-# docker —— 补全的 fpath 与 compinit 已上移到 oh-my-zsh 之前统一处理。
-# Docker Desktop 更新时可能把它自己的那段重新追加到本文件末尾，届时删掉即可
-# gnu-tar —— 已上移到 .zprofile，那里对非交互登录 shell 也生效
-
-# >>> grok installer >>>
-export PATH="$HOME/.grok/bin:$PATH"
-# fpath 与 compinit 已上移到 oh-my-zsh 之前统一处理
-# <<< grok installer <<<
-
-# Vite+ bin (https://viteplus.dev)
-. "$HOME/.vite-plus/env"
-
-# ── PATH 优先级 ────────────────────────────────────────────────────
-# 实测各目录提供的命令集合，只有下面几组真正重叠，其余目录顺序随意：
-#
-#   ~/.local/bin  >  /opt/homebrew/bin   python3、python3.14
-#   ~/.local/bin  >  ~/.grok/bin         agent、grok
-#   gnu-tar       >  /usr/bin            tar、man    ← 在上面 prepend 即满足
-#   homebrew      >  /usr/bin            git 等      ← 同上
-#
-# mise 的 installs 目录不必钉住：homebrew 不提供 node / npm / bun。
-# 但绝不要往前插写死版本号的 node 路径 —— 那会让 mise 的版本切换静默失效
-# （mise current 显示已切换，node --version 却纹丝不动）。
-#
-# 因此只需要这一条：uv 的 env 脚本发现 ~/.local/bin 已在 PATH 中就会跳过，
-# 于是它停在 .zshenv 放的靠后位置，压不过 homebrew 与 ~/.grok/bin
-path=("$HOME/.local/bin" $path)
-
-# ── 别名 ───────────────────────────────────────────────────────────
-# git —— 取代 oh-my-zsh 的 git 插件（它一次塞进 197 个别名，只留常用的）
 alias g="git"
 alias gaa="git add --all"
 alias gcmsg="git commit --message"
@@ -193,7 +124,42 @@ alias gl="git pull"
 alias gcl="git clone --recurse-submodules"
 alias grt='cd "$(git rev-parse --show-toplevel)"'
 
-# ni / nr
+export EDITOR='code'
+
+i() {
+  cd ~/i/$1
+}
+
+export PATH="$HOME/.local/bin:$PATH"
+
+codex() {
+  local base_args="--dangerously-bypass-approvals-and-sandbox"
+
+  command codex ${=base_args} resume --last "$@" 2>/dev/null || command codex ${=base_args} "$@"
+}
+
+claude() {
+  local base_args="--allow-dangerously-skip-permissions --permission-mode plan"
+
+  command claude ${=base_args} -c "$@" 2>/dev/null || command claude ${=base_args} "$@"
+}
+
+export MAVEN_HOME="/usr/local/maven"
+export PATH="$MAVEN_HOME/bin:$PATH"
+
+# bun completions
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Vite+ bin (https://viteplus.dev)
+. "$HOME/.config/vite-plus/env"
+
+
+eval "$($HOME/.local/bin/mise activate zsh)"
+
 alias nio="ni --prefer-offline"
 alias s="nr start"
 alias d="nr dev"
@@ -209,55 +175,3 @@ alias lint="nr lint"
 alias lintf="nr lint --fix"
 alias release="nr release"
 alias re="nr release"
-
-# ── 函数 ───────────────────────────────────────────────────────────
-i() {
-  cd ~/i/$1
-}
-
-codex() {
-  local base_args="--dangerously-bypass-approvals-and-sandbox"
-
-  command codex ${=base_args} resume --last "$@" 2>/dev/null || command codex ${=base_args} "$@"
-}
-
-claude() {
-  local base_args="--allow-dangerously-skip-permissions --permission-mode plan"
-
-  command claude ${=base_args} -c "$@" 2>/dev/null || command claude ${=base_args} "$@"
-}
-
-
-
-
-
-# ── PATH 顺序 ──────────────────────────────────────────────────────
-# 放在最后统一排一次。理由：各处 prepend 的先后决定不了最终顺序 ——
-# /etc/zprofile 的 path_helper 会把系统路径整体提前，安装器还会往本文件
-# 末尾追加自己的 env 脚本。与 Windows 注册表 PATH 用同一套分档，三端一致：
-#   10 语言运行时 → 20 GNU 工具 → 40 应用 → 50 系统/包管理器
-__path_rank() {
-  case "$1" in
-    */.local/bin)                            print 10 ;;  # uv 的 python / claude / codex / herdr
-    */.local/share/mise/installs/*)          print 11 ;;  # mise 当前选中的 node / pnpm / ni
-    */.bun/bin)                              print 12 ;;
-    */.deno/bin)                             print 13 ;;
-    */.cargo/bin)                            print 14 ;;
-    */maven/bin)                             print 15 ;;
-    */miniconda3/bin|*/miniconda3/condabin)  print 16 ;;
-    */.local/share/mise/shims)               print 19 ;;  # 兜底 shim，必须排在 installs 之后
-    */gnubin)                                print 20 ;;  # GNU tar 覆盖系统 bsdtar
-    */.vite-plus/bin)                        print 40 ;;
-    */.grok/bin)                             print 41 ;;
-    */.opencode/bin)                         print 42 ;;
-    /opt/homebrew/bin|/opt/homebrew/sbin)    print 50 ;;
-    /usr/local/*)                            print 51 ;;
-    /usr/bin|/bin|/usr/sbin|/sbin)           print 52 ;;
-    # 苹果自带的系统路径（来自 /etc/paths 与 /etc/paths.d），一律垫底
-    /System/Cryptexes/*|/var/run/com.apple.security.cryptexd/*) print 53 ;;
-    /Library/Apple/*|/usr/ucb|/pkg/env/*)    print 53 ;;
-    *)                                       print 45 ;;  # 未识别：夹在应用与系统之间
-  esac
-}
-path=(${(@f)"$(for __p in $path; do print -r -- "$(__path_rank $__p)|$__p"; done | sort -t'|' -k1,1n -s | cut -d'|' -f2-)"})
-unset __p

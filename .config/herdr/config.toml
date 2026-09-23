@@ -1,8 +1,5 @@
 onboarding = false
 
-[ui]
-agent_panel_sort = "priority"
-
 [theme]
 name = "terminal"
 auto_switch = false
