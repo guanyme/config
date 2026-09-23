@@ -1,52 +1,13 @@
 [settings]
-# 读 package.json 里的 packageManager / devEngines 字段。默认是关的，必须显式打开。
-# 我的项目锁了 4 种 pnpm 版本（11.21.0 / 11.19.0 / 10.10.0 / 10.8.1），
-# 靠这个才能按项目切 —— 原先这活是 corepack 干的。
-#
-# 注意 mise 只认 devEngines，不认传统的 engines.node（jdx/mise#2288 未合并）。
-# 我的 46 个项目 engines.node 全解析到 24，和下面的全局版本一致，所以没有影响；
-# 将来真要按项目切 node，得写 mise.toml 或 .node-version。
-idiomatic_version_file_enable_tools = ["node", "pnpm", "npm", "yarn"]
-
-# 供应链防护：只装发布超过 N 时长的版本，给社区时间发现被投毒的发布。
-# mise 默认 24h，这里关掉 —— 我自己也发 npm 包，刚 publish 就得能装上验证。
-# 想保留防护又不挡自己的包，可以改用 minimum_release_age_excludes 只放行自己的 scope。
+idiomatic_version_file_enable_tools = ["pnpm", "yarn", "npm", "node"]
 minimum_release_age = "0"
 
-# npm: 后端保持默认（内置 aube），不要改成 npm/pnpm —— 那等于为个别包的问题
-# 把所有包的供应链防护都撤掉。aube 拦下来时按包开最小例外，写在 [tools] 里：
-#
-#   trust_policy_excludes  信任降级（旧版有可信发布者签名、新版没有）
-#   allow_builds           放行该包的 postinstall 等构建脚本
-#
-# 两者都只作用于那一个工具，其余包不受影响。
-
-# mise 要频繁查 GitHub Releases，匿名配额只有 60 次/小时，很容易撞限流。
-# gh 的 token 存在 keyring 里，hosts.yml 是空的，所以 mise 默认的读取路径拿不到。
-# 用按需调命令的方式取：token 不落盘、不进环境变量，只在 mise 真要用时存在。
-[settings.github]
-credential_command = "gh auth token"
-
-# 用 npm CLI 装 npm: 包，而不是 mise 内置的 aube。
-# aube 的 trustPolicy=no-downgrade 会拦下信任等级下降的间接依赖 —— 装
-# pi-coding-agent 时被 @smithy/core@3.33.0 卡住（早期版本有可信发布者签名，新版没有，
-# 那是 AWS 那边没走可信工作流，不是包被篡改）。
-#
-# 注意 npm 后端默认仍带 --ignore-scripts，需要 postinstall 的包要在 [tools] 里
-# 单独写 allow_builds = true，否则会装成半成品。
 [tools]
+java = "lts"
+ni = "latest"
 node = "lts"
-java = "lts"         # 兜底值。项目要 JDK 8 / 17 的，在项目里写 mise.toml 覆盖
-pnpm = "latest"      # 兜底值；项目里有 packageManager 字段时按项目走
-yarn = "latest"      # 兜底值。v1 仓库要在 packageManager 字段里自己声明 ——
-                     # 拿 Yarn 4 跑它会把 lockfile 就地迁成 Berry 格式。
-"npm:@antfu/ni" = "latest"
-"npm:taze" = "latest"
-
-# 这两个的例外只作用于自己，其余包仍走 aube 的完整检查
-"npm:opencode-ai" = { version = "latest", allow_builds = true }   # postinstall 要拉 170MB 平台二进制，不放行会装成半成品
-"npm:@earendil-works/pi-coding-agent" = { version = "latest", trust_policy_excludes = ["@smithy/core", "@smithy/node-http-handler", "@smithy/util-stream", "@smithy/fetch-http-handler", "@smithy/middleware-retry"] }   # AWS SDK 那条链新版没有可信发布者签名
-usage = "latest"     # mise 补全的依赖。brew 装 mise 时它是自动带的，
-vercel = { version = "latest", allow_builds = ["esbuild"], trust_policy_excludes = ["undici"] }   # 两条例外是 mise use 自动加的：esbuild 有 postinstall，undici 撞 no-downgrade
-                     # 换成官方安装器 / winget 后就得自己声明，否则每次开 shell 都会
-                     # 警告 "usage CLI not found"
+opencode = "latest"
+pi = "latest"
+pnpm = "latest"
+vercel = { version = "latest", allow_builds = ["esbuild"], trust_policy_excludes = ["undici"] }
+yarn = "latest"

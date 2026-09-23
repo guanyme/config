@@ -1,6 +1,8 @@
+# The following lines were added by Docker Desktop to add commands to your PATH.
+export PATH="$PATH:$HOME/.docker/bin"
+# End of Docker Desktop section.
+
 . "$HOME/.cargo/env"
 
-. "$HOME/.local/bin/env"
-
 # Vite+ bin (https://viteplus.dev)
-. "$HOME/.vite-plus/env"
+. "$HOME/.config/vite-plus/env"
