@@ -1,0 +1,12 @@
+{
+  "name": "config",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "format": "oxfmt .",
+    "check": "oxfmt --check ."
+  },
+  "devDependencies": {
+    "oxfmt": "0.72.0"
+  }
+}
