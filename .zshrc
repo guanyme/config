@@ -124,25 +124,15 @@ alias gl="git pull"
 alias gcl="git clone --recurse-submodules"
 alias grt='cd "$(git rev-parse --show-toplevel)"'
 
-export EDITOR='code'
+export EDITOR='cursor'
+
+alias code="code --classic"
 
 i() {
   cd ~/i/$1
 }
 
 export PATH="$HOME/.local/bin:$PATH"
-
-codex() {
-  local base_args="--dangerously-bypass-approvals-and-sandbox"
-
-  command codex ${=base_args} resume --last "$@" 2>/dev/null || command codex ${=base_args} "$@"
-}
-
-claude() {
-  local base_args="--allow-dangerously-skip-permissions --permission-mode plan"
-
-  command claude ${=base_args} -c "$@" 2>/dev/null || command claude ${=base_args} "$@"
-}
 
 export MAVEN_HOME="/usr/local/maven"
 export PATH="$MAVEN_HOME/bin:$PATH"
