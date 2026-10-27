@@ -1,5 +1,5 @@
 # The following lines were added by Docker Desktop to add commands to your PATH.
-export PATH="$PATH:$HOME/.docker/bin"
+export PATH="$PATH:/Users/guany/.docker/bin"
 # End of Docker Desktop section.
 
 eval "$(/opt/homebrew/bin/brew shellenv zsh)"

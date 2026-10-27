@@ -1,6 +1,9 @@
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
+# PATH 去重：只保留每个路径第一次出现的位置
+typeset -U path PATH
+
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -126,13 +129,23 @@ alias grt='cd "$(git rev-parse --show-toplevel)"'
 
 export EDITOR='cursor'
 
-alias code="code --classic"
-
 i() {
   cd ~/i/$1
 }
 
 export PATH="$HOME/.local/bin:$PATH"
+
+codex() {
+  local base_args="--dangerously-bypass-approvals-and-sandbox"
+
+  command codex ${=base_args} "$@"
+}
+
+claude() {
+  local base_args="--allow-dangerously-skip-permissions --permission-mode plan"
+
+  command claude ${=base_args} "$@"
+}
 
 export MAVEN_HOME="/usr/local/maven"
 export PATH="$MAVEN_HOME/bin:$PATH"
@@ -147,8 +160,7 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # Vite+ bin (https://viteplus.dev)
 . "$HOME/.config/vite-plus/env"
 
-
-eval "$($HOME/.local/bin/mise activate zsh)"
+eval "$(mise activate zsh)"
 
 alias nio="ni --prefer-offline"
 alias s="nr start"
