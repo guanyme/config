@@ -1,6 +1,6 @@
 [settings]
 idiomatic_version_file_enable_tools = ["pnpm", "yarn", "npm", "node"]
-minimum_release_age = "0"
+minimum_release_age = "0d"
 
 [tools]
 java = "lts"
