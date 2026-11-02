@@ -5,5 +5,9 @@
   },
   "font": "FiraCode Nerd Font",
   "font_size": 16.0,
-  "minimum_contrast": 1.0
+  "minimum_contrast": 1.0,
+  "theme": {
+    "light": "vitesse-light",
+    "dark": "vitesse-dark"
+  }
 }
